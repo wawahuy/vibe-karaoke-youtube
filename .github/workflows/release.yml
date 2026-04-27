@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  release:
+    # Only run when the commit message starts with "release:"
+    if: startsWith(github.event.head_commit.message, 'release:') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      # ── Node.js ─────────────────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── Bump patch version in electron/package.json ─────────────────────────
+      - name: Bump patch version
+        id: version
+        run: |
+          cd electron
+          npm version patch --no-git-tag-version
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # ── Commit bumped version + push tag ────────────────────────────────────
+      - name: Commit & tag version
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add electron/package.json
+          git commit -m "chore: bump version to v${{ steps.version.outputs.version }} [skip ci]"
+          git tag "v${{ steps.version.outputs.version }}"
+          git push origin HEAD --tags
+
+      # ── System deps for Linux packaging ─────────────────────────────────────
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends rpm fakeroot
+
+      # ── Ensure backend .env exists (empty is OK) ────────────────────────────
+      - name: Create empty backend .env
+        run: touch backend/.env
+
+      # ── Install JS dependencies ──────────────────────────────────────────────
+      - name: Install dependencies
+        run: |
+          (cd frontend && npm ci --legacy-peer-deps --no-audit --no-fund)
+          (cd backend  && npm ci --no-audit --no-fund)
+          (cd electron && npm ci --no-audit --no-fund)
+
+      # ── Build frontend & backend ─────────────────────────────────────────────
+      - name: Build frontend & backend
+        run: |
+          (cd frontend && npm run build)
+          (cd backend  && npm run build)
+
+      # ── Package Linux (AppImage + deb) ───────────────────────────────────────
+      - name: Build & package Linux
+        run: |
+          cd electron
+          npm run build
+          node scripts/rebuild-backend.js
+          npx electron-builder --linux --x64
+
+      # ── Build Windows installer via Docker + Wine ────────────────────────────
+      - name: Build & package Windows (Docker + Wine)
+        run: |
+          docker build -f Dockerfile.win -t yt-karaoke-win .
+          CID=$(docker create yt-karaoke-win)
+          rm -rf electron/release-win
+          docker cp "$CID:/build/electron/release" electron/release-win
+          docker rm "$CID"
+
+      # ── Create GitHub Release & upload artifacts ─────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body: ${{ github.event.head_commit.message }}
+          fail_on_unmatched_files: false
+          files: |
+            electron/release/*.AppImage
+            electron/release/*.deb
+            electron/release-win/*.exe
