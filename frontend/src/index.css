@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-surface-hover: #e8e8e8;
+  --color-border: #e0e0e0;
+  --color-text-primary: #0f0f0f;
+  --color-text-secondary: #606060;
+  --color-accent: #ff0000;
+  --color-accent-hover: #cc0000;
+  --font-sans: "Inter", "Roboto", system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-background);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0;
+  }
+}
+
+@layer components {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface) 25%,
+      var(--color-surface-hover) 50%,
+      var(--color-surface) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ticker-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 25s linear infinite;
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(100vw); }
+    to   { transform: translateX(-100%); }
+  }
+
+  .karaoke-bg {
+    background: linear-gradient(135deg, #08001c, #001030, #0a0020, #08001c);
+    background-size: 400% 400%;
+    animation: aurora-bg 10s ease infinite;
+  }
+
+  .karaoke-title {
+    background: linear-gradient(90deg, #ffdf40, #ff8c00, #ff0066, #c800ff, #0088ff, #00ffcc, #ffdf40);
+    background-size: 300% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer-karaoke 5s linear infinite;
+  }
+
+  .neon-phone-pill {
+    border: 2px solid rgba(255,0,102,0.8);
+    box-shadow: 0 0 15px rgba(255,0,102,0.5), 0 0 30px rgba(255,0,102,0.2), inset 0 0 15px rgba(255,0,102,0.05);
+    animation: neon-pulse 2.5s ease-in-out infinite;
+  }
+
+  .floating-particle {
+    animation: float-particle linear infinite;
+    will-change: transform, opacity;
+  }
+
+  @keyframes aurora-bg {
+    0%, 100% { background-position: 0% 50%; }
+    50%       { background-position: 100% 50%; }
+  }
+
+  @keyframes shimmer-karaoke {
+    from { background-position: 0% center; }
+    to   { background-position: 300% center; }
+  }
+
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(200%); }
+  }
+
+  @keyframes neon-pulse {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,0,102,0.5), 0 0 30px rgba(255,0,102,0.2); }
+    50%       { box-shadow: 0 0 25px rgba(255,0,102,0.8), 0 0 50px rgba(255,0,102,0.4), 0 0 80px rgba(200,0,255,0.2); }
+  }
+
+  @keyframes float-particle {
+    0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+    5%   { opacity: 0.9; }
+    80%  { opacity: 0.4; }
+    100% { transform: translateY(-105vh) rotate(540deg) scale(0.3); opacity: 0; }
+  }
+
+  @keyframes spin-slow {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.8; transform: translate(-50%, -60%) scale(1); }
+    50%       { opacity: 1;   transform: translate(-50%, -60%) scale(1.1); }
+  }
+
+  .signal-ring {
+    width: 90px;
+    height: 90px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    animation: signal-ring 2.4s ease-out infinite;
+  }
+
+  @keyframes signal-ring {
+    0%   { transform: scale(0.6); opacity: 0.8; }
+    100% { transform: scale(3.2); opacity: 0; }
+  }
+
+  .loading-dot {
+    animation: dot-bounce 0.8s ease-in-out infinite;
+  }
+
+  @keyframes dot-bounce {
+    0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+    40%           { opacity: 1;   transform: translateY(-5px); }
+  }
+}

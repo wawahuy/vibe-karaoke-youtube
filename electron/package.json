@@ -1,0 +1,71 @@
+{
+  "name": "youtube-karaoke",
+  "version": "1.0.0",
+  "description": "YouTube Karaoke Desktop App",
+  "main": "dist/main.js",
+  "author": {
+    "name": "Karaoke App",
+    "email": "app@karaoke.local"
+  },
+  "homepage": "https://github.com/karaoke/app",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc && electron .",
+    "rebuild:backend": "node scripts/rebuild-backend.js",
+    "dist:linux": "npm run build && npm run rebuild:backend && electron-builder --linux",
+    "dist:win": "npm run build && npm run rebuild:backend && electron-builder --win",
+    "dist:all": "npm run build && npm run rebuild:backend && electron-builder --linux --win"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "@types/node": "^22.0.0",
+    "electron": "^34.3.4",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.0"
+  },
+  "build": {
+    "appId": "com.karaoke.youtube",
+    "productName": "YouTube Karaoke",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "dist/**",
+          "node_modules/**",
+          "package.json",
+          ".env"
+        ]
+      },
+      {
+        "from": "../frontend/dist",
+        "to": "frontend-dist"
+      }
+    ],
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ],
+      "category": "AudioVideo",
+      "synopsis": "YouTube Karaoke Player",
+      "maintainer": "Karaoke App <app@karaoke.local>"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
