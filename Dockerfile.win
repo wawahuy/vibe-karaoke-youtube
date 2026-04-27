@@ -1,0 +1,30 @@
+# electronuserland/builder:wine includes Node.js, Wine, Mono, NSIS
+# which are all needed to package an Electron app for Windows from Linux.
+FROM electronuserland/builder:wine
+
+WORKDIR /build
+
+# ── 1. Install deps (cached layer when only source changes) ──────────────────
+COPY frontend/package*.json  ./frontend/
+COPY backend/package*.json   ./backend/
+COPY electron/package*.json  ./electron/
+
+RUN cd frontend && npm ci --no-audit --no-fund --legacy-peer-deps
+RUN cd backend  && npm ci --no-audit --no-fund
+RUN cd electron && npm ci --no-audit --no-fund
+
+# ── 2. Copy source ────────────────────────────────────────────────────────────
+COPY frontend/ ./frontend/
+COPY backend/  ./backend/
+COPY electron/ ./electron/
+
+# ── 3. Build ──────────────────────────────────────────────────────────────────
+RUN cd frontend && npm run build
+RUN cd backend  && npm run build
+RUN cd electron && npm run build
+
+# ── 4. Rebuild better-sqlite3 for Windows x64 (downloads prebuilt binary) ────
+RUN cd electron && node scripts/rebuild-backend.js --platform=win32 --arch=x64
+
+# ── 5. Package for Windows ───────────────────────────────────────────────────
+RUN cd electron && npx electron-builder --win --x64
